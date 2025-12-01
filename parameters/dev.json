@@ -1,0 +1,45 @@
+{
+  "prefix": { "value": "intelli" },
+  "project": { "value": "ddp" },
+  "env": { "value": "dev" },
+  "region": { "value": "eus" },
+  "location": { "value": "eastus" },
+  "tags": {
+    "value": {
+      "Owner": "PlatformTeam",
+      "CostCenter": "AppDev",
+      "Environment": "dev",
+      "project": "ddp",
+      "region": "eus"
+    }
+  },
+  "vnetAddress": { "value": "10.0.0.0/16" },
+  "subnets": {
+    "value": [
+      { "name": "snet-app-ddp-dev-eus-01", "addressPrefix": "10.0.1.0/24" },
+      { "name": "snet-db-ddp-dev-eus-01", "addressPrefix": "10.0.2.0/24" }
+    ]
+  },
+
+  "adminUsername": { "value": "azureuser" },
+  "adminPassword": { "value": "Password@123" },
+   "storageAccounts": {
+  "value": [
+    { "skuName": "Standard_LRS", "kind": "StorageV2", "region": "eus", "suffix": "01" },
+    { "skuName": "Standard_GRS", "kind": "StorageV2", "region": "eus", "suffix": "02" }
+  ]
+},
+"vmList": {
+  "value": [
+    { "size": "Standard_B2s", "suffix": "01" },
+    { "size": "Standard_B2ms", "suffix": "02" }
+  ]
+}
+
+
+}
+
+
+
+
+

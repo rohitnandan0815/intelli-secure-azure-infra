@@ -11,7 +11,8 @@ param adminPassword string
 param suffix string
 param vmSize string
 
-var vmName = 'vm${prefix}${project}${env}${region}${suffix}'
+var vmName = 'vm-${prefix}-${project}-${env}-${region}-${suffix}'
+
 
 
 resource vm 'Microsoft.Compute/virtualMachines@2023-03-01' = {

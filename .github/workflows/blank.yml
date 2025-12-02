@@ -63,13 +63,11 @@ jobs:
           framework: bicep
           soft_fail: false
           output_format: sarif
-          output_file_path: reports/checkov.sarif
 
       - name: Upload SARIF report to GitHub Security Dashboard
         uses: github/codeql-action/upload-sarif@v3
         with:
-          sarif_file: reports/checkov.sarif
-
+          sarif_file: results.sarif
 
   manualApproval:
     name: "Manual Approval Required"

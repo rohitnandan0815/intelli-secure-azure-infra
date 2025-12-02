@@ -1,0 +1,40 @@
+name: Bicep Test WorkFlow Infra
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+permissions:
+ id-token: write
+ contents: read
+
+  workflow_dispatch:
+
+jobs:
+  build:
+  name: "build infra"
+  
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout Code
+        uses: actions/checkout@v4
+      - name: azure login
+        uses: Azure/login@v2.3.0
+        with:
+         client-id: ${{secrets.AZURE_CLIENT_ID}}
+         tenant-id: ${{secrets.AZURE_TENANT_ID}}
+         subscription-id: ${{secrets.AZURE_SUBSCRIPTION_ID}}
+
+
+      
+
+      # # Runs a single command using the runners shell
+      # - name: Run a one-line script
+      #   run: echo Hello, world!
+
+      # # Runs a set of commands using the runners shell
+      # - name: Run a multi-line script
+      #   run: |
+      #     echo Add other actions to build,
+      #     echo test, and deploy your project.

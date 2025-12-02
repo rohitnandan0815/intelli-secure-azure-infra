@@ -2,8 +2,8 @@
   "prefix": { "value": "intelli" },
   "project": { "value": "ddp" },
   "env": { "value": "dev" },
-  "region": { "value": "eus" },
-  "location": { "value": "centralindia" }, 
+  "region": { "value": "ind" },
+  "location": { "value": "centralindia" },
 
   "tags": {
     "value": {
@@ -11,7 +11,7 @@
       "CostCenter": "AppDev",
       "Environment": "dev",
       "project": "ddp",
-      "region": "eus"
+      "region": "ind"
     }
   },
 
@@ -28,16 +28,15 @@
 
   "storageAccounts": {
     "value": [
-      { "skuName": "Standard_LRS", "kind": "StorageV2", "region": "eus", "suffix": "01" },
-      { "skuName": "Standard_GRS", "kind": "StorageV2", "region": "eus", "suffix": "02" }
+      { "skuName": "Standard_LRS", "kind": "StorageV2", "region": "centralindia", "suffix": "st01" },
+      { "skuName": "Standard_GRS", "kind": "StorageV2", "region": "centralindia", "suffix": "st02" }
     ]
   },
 
   "vmList": {
     "value": [
-      { "size": "Standard_D2s_v3", "suffix": "01" },
-      { "size": "Standard_B2s", "suffix": "02" }
+      { "size": "Standard_B1s", "suffix": "01" },
+      { "size": "Standard_B1ms", "suffix": "02" }
     ]
   }
 }
-

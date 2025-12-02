@@ -15,12 +15,8 @@ param adminPassword string
 param storageAccounts array
 param vmList array
 
-
-
-
 // ===== Naming Conventions =====
 var rgName = 'rg-${prefix}-${project}-${env}'
-
 
 // ===== Resource Group Module =====
 module rg './modules/resource-group/rg.bicep' = {
@@ -36,6 +32,9 @@ module rg './modules/resource-group/rg.bicep' = {
 module vnet './modules/network/vnet.bicep' = {
   name: 'vnet-deploy'
   scope: resourceGroup(rgName)
+  dependsOn: [
+    rg
+  ]
   params: {
     prefix: prefix
     project: project
@@ -48,11 +47,11 @@ module vnet './modules/network/vnet.bicep' = {
   }
 }
 
-
 // ===== Public IP =====
 module pip './modules/compute/public-ip.bicep' = {
   name: 'pip-${prefix}-${env}-01'
   scope: resourceGroup(rgName)
+  dependsOn: [ rg ]
   params: {
     prefix: prefix
     env: env
@@ -65,7 +64,12 @@ module pip './modules/compute/public-ip.bicep' = {
 module nic './modules/compute/nic.bicep' = {
   name: 'nic-${prefix}-${env}-01'
   scope: resourceGroup(rgName)
-    params: {
+  dependsOn: [
+    rg
+    pip
+    vnet
+  ]
+  params: {
     prefix: prefix
     project: project
     env: env
@@ -75,13 +79,16 @@ module nic './modules/compute/nic.bicep' = {
     pipId: pip.outputs.pipId
     subnetId: vnet.outputs.subnetIds[0]
   }
-
 }
-// ===== LINUX VM LOOP ======
 
+// ===== LINUX VM LOOP ======
 module linuxVm './modules/compute/linux-vm.bicep' = [for vm in vmList: {
   name: 'vm-linux-${prefix}-${project}-${env}-${vm.suffix}'
   scope: resourceGroup(rgName)
+  dependsOn: [
+    rg
+    nic
+  ]
   params: {
     prefix: prefix
     project: project
@@ -97,11 +104,13 @@ module linuxVm './modules/compute/linux-vm.bicep' = [for vm in vmList: {
   }
 }]
 
-
 // ===== STORAGE ACCOUNTS LOOP =====
 module storage './modules/storage/storage-account.bicep' = [for sa in storageAccounts: {
   name: 'storage-${project}-${env}-${sa.suffix}'
   scope: resourceGroup(rgName)
+  dependsOn: [
+    rg
+  ]
   params: {
     project: project
     env: env
@@ -113,6 +122,5 @@ module storage './modules/storage/storage-account.bicep' = [for sa in storageAcc
     suffix: sa.suffix
   }
 }]
-
 
 output resourceGroupName string = rgName

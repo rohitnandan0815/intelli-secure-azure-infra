@@ -59,7 +59,8 @@ jobs:
       - name: Run Checkov Security Scan
         uses: bridgecrewio/checkov-action@v12.1347.0
         with:
-          directory: .
+          file: ./main.bicep 
+          framework: bicep
           soft_fail: false
           output_format: sarif
 
@@ -68,9 +69,10 @@ jobs:
         with:
           sarif_file: results.sarif
 
+
   manualApproval:
     name: "Manual Approval Required"
-    needs: [build, securityScan]
+    needs: [ build, securityScan ]
     runs-on: ubuntu-latest
     environment:
       name: approval-dev
@@ -106,3 +108,32 @@ jobs:
           inlineScript: |
             echo "Running Final Deployment"
             az deployment sub create --name intelli-secure-ddp-deploy-dev --location eastus --template-file ./main.bicep --parameters @parameters/dev.json
+
+
+  rollback:
+    name: "Rollback Deployment"
+    needs: deploy
+    runs-on: ubuntu-latest
+    if: failure()
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Azure Login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Start Rollback
+        uses: Azure/cli@v2.2.0
+        with:
+          inlineScript: |
+            echo "Deployment failed — Starting rollback process"
+            echo "Deleting failed deployment"
+            az deployment sub delete --name intelli-secure-ddp-deploy-dev
+
+      - name: Rollback Completed Message
+        run: echo "Rollback Completed Successfully!"

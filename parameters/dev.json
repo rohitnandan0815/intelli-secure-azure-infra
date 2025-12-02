@@ -3,7 +3,7 @@
   "project": { "value": "ddp" },
   "env": { "value": "dev" },
   "region": { "value": "eus" },
-  "location": { "value": "eastus" },
+  "location": { "value": "centralindia" }, 
 
   "tags": {
     "value": {
@@ -18,8 +18,8 @@
   "vnetAddress": { "value": "10.0.0.0/16" },
   "subnets": {
     "value": [
-      { "name": "snet-app-ddp-dev-eus-01", "addressPrefix": "10.0.1.0/24" },
-      { "name": "snet-db-ddp-dev-eus-01", "addressPrefix": "10.0.2.0/24" }
+      { "name": "snet-app-ddp-dev-ind-01", "addressPrefix": "10.0.1.0/24" },
+      { "name": "snet-db-ddp-dev-ind-01", "addressPrefix": "10.0.2.0/24" }
     ]
   },
 
@@ -40,3 +40,4 @@
     ]
   }
 }
+

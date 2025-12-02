@@ -1,5 +1,9 @@
 name: Deploy intelli-secure-azure-infra
 
+permissions:
+  id-token: write
+  contents: read
+
 on:
   push:
     branches: [ "main" ]
@@ -12,10 +16,6 @@ jobs:
     name: "Build-Infrastructure"
     runs-on: ubuntu-latest
     environment: dev
-
-    permissions:
-      id-token: write
-      contents: read
 
     steps:
       - name: Checkout Code
@@ -42,7 +42,6 @@ jobs:
             echo "Running What-If analysis"
             az deployment sub what-if --location eastus --template-file ./main.bicep --parameters @parameters/dev.json
 
-
   securityScan:
     name: "Security-Scan-Analysis"
     needs: build
@@ -50,16 +49,15 @@ jobs:
 
     permissions:
       security-events: write
-      contents: read
 
     steps:
-      - name: Checkout code
+      - name: Checkout Code
         uses: actions/checkout@v4
 
       - name: Run Checkov Security Scan
         uses: bridgecrewio/checkov-action@v12.1347.0
         with:
-          directory: ./main.bicep 
+          directory: ./main.bicep
           framework: bicep
           soft_fail: false
           output_format: sarif
@@ -69,27 +67,22 @@ jobs:
         with:
           sarif_file: results.sarif
 
-
   manualApproval:
     name: "Manual Approval Required"
     needs: [ build, securityScan ]
     runs-on: ubuntu-latest
     environment:
       name: approval-dev
+      url: https://github.com
 
     steps:
       - name: Waiting For Manual Approval
-        run: echo "Waiting for approval from Reviewer"
-
+        run: echo "Waiting for approval..."
 
   deploy:
     name: "Deploy-Infrastructure"
     needs: manualApproval
     runs-on: ubuntu-latest
-
-    permissions:
-      id-token: write
-      contents: read
 
     steps:
       - name: Checkout Code
@@ -108,7 +101,6 @@ jobs:
           inlineScript: |
             echo "Running Final Deployment"
             az deployment sub create --name intelli-secure-ddp-deploy-dev --location eastus --template-file ./main.bicep --parameters @parameters/dev.json
-
 
   rollback:
     name: "Rollback Deployment"
@@ -132,7 +124,6 @@ jobs:
         with:
           inlineScript: |
             echo "Deployment failed — Starting rollback process"
-            echo "Deleting failed deployment"
             az deployment sub delete --name intelli-secure-ddp-deploy-dev
 
       - name: Rollback Completed Message

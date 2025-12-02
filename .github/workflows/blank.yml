@@ -30,13 +30,14 @@ jobs:
       - name: Build Bicep File
         uses: Azure/cli@v2.2.0
         with:
-           inlineScript:
+          inlineScript:
              echo "Building Bicep template"
              az bicep build --file main.bicep
 
       - name: What-If Deployment (Preview Changes)
         uses: Azure/cli@v2.2.0
-         with:
+        with:
+         inlineScript: 
           echo "Running What-If analysis"
           az deployment sub what-if --location eastus --template-file ./main.bicep --parameters @parameters/dev.json
        

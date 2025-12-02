@@ -16,17 +16,27 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: checkout Code
+      - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: azure login
+      # Debug secrets before login
+      - name: Debug Secret values
+        run: |
+          echo "AZURE_CLIENT_ID = (${{ secrets.AZURE_CLIENT_ID }})"
+          echo "AZURE_TENANT_ID = (${{ secrets.AZURE_TENANT_ID }})"
+          echo "AZURE_SUBSCRIPTION_ID = (${{ secrets.AZURE_SUBSCRIPTION_ID }})"
+
+      - name: Azure Login
         uses: azure/login@v2
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      # add your deployment command here
-      # - name: deploy bicep
+      # Example Bicep Deployment Command
+      # - name: Deploy Bicep
       #   run: |
-      #     az deployment sub what-if --location eastus --template-file main.bicep
+      #     az deployment sub what-if \
+      #       --location eastus \
+      #       --template-file main.bicep
+

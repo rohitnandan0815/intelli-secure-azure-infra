@@ -60,7 +60,6 @@ jobs:
         uses: bridgecrewio/checkov-action@v12.1347.0
         with:
           directory: .
-          framework: bicep
           soft_fail: false
           output_format: sarif
 

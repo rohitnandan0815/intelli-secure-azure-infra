@@ -83,6 +83,7 @@ jobs:
     name: "Deploy-Infrastructure"
     needs: manualApproval
     runs-on: ubuntu-latest
+    environment: dev     # <-- Ye line add karni hai
 
     permissions:
       id-token: write      # REQUIRED for OIDC
@@ -111,7 +112,8 @@ jobs:
     needs: deploy
     runs-on: ubuntu-latest
     if: failure()
-   
+    environment: dev     # <-- Ye line add karni hai
+    
     permissions:
       id-token: write      # REQUIRED for OIDC
       contents: read

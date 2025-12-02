@@ -11,7 +11,7 @@ jobs:
   build:
     name: "AzureLoginBuildingBicepTemplatePreviewChanges"
     runs-on: ubuntu-latest
-    environment: dev        # <-- environment added here
+    environment: dev
 
     permissions:
       id-token: write
@@ -31,18 +31,32 @@ jobs:
       - name: Build Bicep File
         uses: Azure/cli@v2.2.0
         with:
-          inlineScript:
-             echo "Building Bicep template"
-             az bicep build --file main.bicep
+          inlineScript: |
+            echo "Building Bicep template"
+            az bicep build --file main.bicep
 
       - name: What-If Deployment (Preview Changes)
         uses: Azure/cli@v2.2.0
         with:
-         inlineScript: 
-          echo "Running What-If analysis"
-          az deployment sub what-if --location eastus --template-file ./main.bicep --parameters @parameters/dev.json
-       
-
-     
+          inlineScript: |
+            echo "Running What-If analysis"
+            az deployment sub what-if --location eastus --template-file ./main.bicep --parameters @parameters/dev.json
 
 
+  scan:
+    name: "securityScanningCode"
+    needs: build       # <-- Correct keyword
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Checkov GitHub Action
+        uses: bridgecrewio/checkov-action@v12.1347.0
+        with:
+          directory: .
+          framework: bicep
+          soft_fail: false
+          output_format: sarif
+          output_file_path: reports/checkov.sarif

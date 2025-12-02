@@ -3,7 +3,8 @@
   "project": { "value": "ddp" },
   "env": { "value": "dev" },
   "region": { "value": "eus" },
-  "location": { "value": "eastus2" },
+  "location": { "value": "eastus" },
+
   "tags": {
     "value": {
       "Owner": "PlatformTeam",
@@ -35,13 +36,7 @@
   "vmList": {
     "value": [
       { "size": "Standard_D2s_v3", "suffix": "01" },
-      { "size": "Standard_D2as_v5", "suffix": "02" }
+      { "size": "Standard_B2s", "suffix": "02" }
     ]
   }
 }
-
-
-
-
-
-

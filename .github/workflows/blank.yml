@@ -9,8 +9,6 @@ permissions:
  id-token: write
  contents: read
 
-  workflow_dispatch:
-
 jobs:
   build:
   name: "build infra"

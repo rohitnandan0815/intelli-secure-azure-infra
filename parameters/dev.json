@@ -28,8 +28,8 @@
 
   "storageAccounts": {
     "value": [
-      { "skuName": "Standard_LRS", "kind": "StorageV2", "region": "centralindia", "suffix": "st01" },
-      { "skuName": "Standard_GRS", "kind": "StorageV2", "region": "centralindia", "suffix": "st02" }
+      { "skuName": "Standard_LRS", "kind": "StorageV2", "region": "centralindia", "suffix": "st8" },
+      { "skuName": "Standard_GRS", "kind": "StorageV2", "region": "centralindia", "suffix": "st9" }
     ]
   },
 
@@ -38,5 +38,14 @@
       { "size": "Standard_B1s", "suffix": "01" },
       { "size": "Standard_B1ms", "suffix": "02" }
     ]
-  }
+    
+  },
+  "nicList": {
+  "value": [
+    { "nicIndex": "01" },
+    { "nicIndex": "02" }
+  ]
+}
+
+
 }

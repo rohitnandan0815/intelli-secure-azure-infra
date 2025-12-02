@@ -4,25 +4,18 @@ param env string
 param region string
 param location string
 param tags object
-param pipId string
 param subnetId string
-
-
-var nicName = 'nic-${prefix}-${project}-${env}-${region}-01'
+param nicIndex string
 
 resource nic 'Microsoft.Network/networkInterfaces@2023-05-01' = {
-  name: nicName
+  name: 'nic-${prefix}-${project}-${env}-${region}-${nicIndex}'
   location: location
   tags: tags
   properties: {
     ipConfigurations: [
       {
-        name: 'ipconfig1'
+        name: 'ipconfig'
         properties: {
-          privateIPAllocationMethod: 'Dynamic'
-          publicIPAddress: {
-            id: pipId
-          }
           subnet: {
             id: subnetId
           }

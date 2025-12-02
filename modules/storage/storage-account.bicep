@@ -7,7 +7,7 @@ param skuName string
 param kind string
 param suffix string
 
-var saName = 'st${project}${env}${region}${suffix}'
+var saName = 'stg${project}${env}${region}${suffix}'
 
 
 resource storage 'Microsoft.Storage/storageAccounts@2023-01-01' = {

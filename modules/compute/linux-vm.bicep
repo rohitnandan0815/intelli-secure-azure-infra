@@ -8,8 +8,9 @@ param nicId string
 param adminUsername string
 @secure()
 param adminPassword string
-param suffix string
 param vmSize string
+param suffix string
+
 
 var vmName = 'vm-${prefix}-${project}-${env}-${region}-${suffix}'
 

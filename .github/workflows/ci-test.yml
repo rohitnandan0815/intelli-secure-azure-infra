@@ -68,3 +68,19 @@ jobs:
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: results.sarif
+
+  manualApproval:
+    name: Manual Approval Required
+    needs: [ build, securityScan ]
+    runs-on: ubuntu-latest
+
+    # Run only when pushing to prod branch
+    if: ${{ github.ref_name == 'prod' }}
+
+    environment:
+      name: approval-prod   # Protected environment → manual approval required
+
+    steps:
+      - name: Waiting For Manual Approval
+        run: "true"
+        

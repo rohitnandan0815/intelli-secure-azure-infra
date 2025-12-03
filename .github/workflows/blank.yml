@@ -34,8 +34,7 @@ jobs:
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
       - name: Build Bicep File
-        run: |
-          az bicep build --file main.bicep
+        run: az bicep build --file main.bicep
 
       - name: What-If Deployment
         run: |
@@ -60,7 +59,7 @@ jobs:
       - name: Run Checkov Scan
         uses: bridgecrewio/checkov-action@v12.1347.0
         with:
-          directory: ./main.bicep
+          directory: ./
           framework: bicep
           soft_fail: false
           output_format: sarif
@@ -131,11 +130,16 @@ jobs:
             const runs = await github.rest.actions.listWorkflowRuns({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              workflow_id: "ci.yml",
+              workflow_id: "CI-intelli-secure-azure-infra-environments.yml", 
               status: "success",
               branch: "main"
             });
-            core.setOutput("sha", runs.data.workflow_runs[0].head_sha);
+
+            if (!runs.data.workflow_runs.length) {
+              core.setFailed("No successful workflow run found for main branch!");
+            } else {
+              core.setOutput("sha", runs.data.workflow_runs[0].head_sha);
+            }
 
       - name: Checkout Last Successful Commit
         uses: actions/checkout@v4

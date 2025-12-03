@@ -8,8 +8,8 @@ on:
       - main
 
 env:
-  ENV_NAME: ${{ github.ref_name }}                     # dev / test / main
-  PARAM_FILE: ${{ github.ref_name == 'main' && 'parameters/prod.json' || format('parameters/{0}.json', github.ref_name) }} 
+  ENV_NAME: ${{ github.ref_name }}
+  PARAM_FILE: ${{ github.ref_name == 'main' && 'parameters/prod.json' || format('parameters/{0}.json', github.ref_name) }}
 
 jobs:
 
@@ -36,12 +36,15 @@ jobs:
       - name: Build Bicep File
         run: |
           az bicep build --file main.bicep
+
       - name: What-If Deployment
         run: |
           az deployment sub what-if \
             --location eastus \
             --template-file main.bicep \
             --parameters @$PARAM_FILE
+
+
   securityScan:
     name: Security Scan (Checkov)
     needs: build
@@ -88,10 +91,11 @@ jobs:
     needs: [ build, securityScan ]
     runs-on: ubuntu-latest
     environment: ${{ github.ref_name == 'main' && 'approval-prod' || github.ref_name }}
-    
+
     permissions:
       id-token: write
       contents: read
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -110,12 +114,13 @@ jobs:
             --location eastus \
             --template-file main.bicep \
             --parameters @$PARAM_FILE
+
+
   rollback:
     name: Rollback Deployment
     needs: [ deploy ]
     runs-on: ubuntu-latest
 
-    # Rollback only for production & only if deploy failed #
     if: failure() && github.ref_name == 'main'
 
     permissions:
@@ -126,7 +131,7 @@ jobs:
       - name: Checkout Last Successful Commit
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.workflow_run.head_sha }}
+          ref: ${{ github.sha }}
 
       - name: Azure Login (OIDC)
         uses: azure/login@v2
@@ -142,7 +147,6 @@ jobs:
             --location eastus \
             --template-file main.bicep \
             --parameters @parameters/prod.json
+
       - name: Rollback Completed
         run: "true"
-
- 

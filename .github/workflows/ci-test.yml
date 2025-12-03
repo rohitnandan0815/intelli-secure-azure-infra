@@ -5,17 +5,14 @@ on:
     branches:
       - test
       - prod
+env:
+  ENV_NAME: ${{ github.ref_name }}                     # dev / test / prod
+  PARAM_FILE: parameters/${{ github.ref_name }}.json   # dynamic param file
 
 jobs:
-
   build:
     name: Deploy-Infrastructure
     runs-on: ubuntu-latest
-
-    env:
-      ENV_NAME: ${{ github.ref_name }}   # dev, test, prod
-      PARAM_FILE: parameters/${{ github.ref_name }}.json
-
     environment: ${{ github.ref_name }}
 
     permissions:
@@ -43,7 +40,6 @@ jobs:
             --location eastus \
             --template-file ./main.bicep \
             --parameters @$PARAM_FILE
-
   securityScan:
     name: Security-Scan-Analysis
     needs: build
@@ -65,33 +61,26 @@ jobs:
           soft_fail: false
           output_format: sarif
 
-      - name: Upload SARIF report to GitHub Security Dashboard
+      - name: Upload SARIF report
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: results.sarif
-
   manualApproval:
     name: Manual Approval Required
     needs: [ build, securityScan ]
     runs-on: ubuntu-latest
-
     if: ${{ github.ref_name == 'prod' }}
 
     environment:
-      name: approval-prod   
+      name: approval-prod 
 
     steps:
       - name: Waiting For Approval
         run: "true"
-
   deploy:
     name: Deploy Infrastructure
     needs: [ build, securityScan ]
     runs-on: ubuntu-latest
-    env:
-      ENV_NAME: ${{ github.ref_name }}   # dev, test, prod
-      PARAM_FILE: parameters/${{ github.ref_name }}.json
-
     environment: ${{ github.ref_name }}
 
     permissions:
@@ -116,3 +105,38 @@ jobs:
             --location eastus \
             --template-file ./main.bicep \
             --parameters @$PARAM_FILE
+  rollback:
+    name: "Rollback Deployment"
+    needs: deploy
+    runs-on: ubuntu-latest
+    if: failure() && github.ref_name == 'prod'
+
+    environment: prod
+
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Checkout last successful commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Azure Login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Run Rollback Deployment
+        run: |
+          az deployment sub create \
+            --name rollback-${{ github.run_id }} \
+            --location eastus \
+            --template-file ./main.bicep \
+            --parameters @parameters/prod.json
+
+      - name: Rollback Completed
+        run: true

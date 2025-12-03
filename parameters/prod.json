@@ -1,0 +1,46 @@
+{
+  "prefix": { "value": "intelli" },
+  "project": { "value": "ddp" },
+  "env": { "value": "prod" },
+  "region": { "value": "ind" },
+  "location": { "value": "centralindia" },
+
+  "tags": {
+    "value": {
+      "Owner": "PlatformTeam",
+      "CostCenter": "AppDev",
+      "Environment": "prod",
+      "project": "ddp",
+      "region": "ind"
+    }
+  },
+
+  "vnetAddress": { "value": "10.1.0.0/16" },
+
+  "subnets": {
+    "value": [
+      { "name": "snet-app-ddp-prod-ind-01", "addressPrefix": "10.1.1.0/24" }
+    ]
+  },
+
+  "adminUsername": { "value": "azureuser" },
+  "adminPassword": { "value": "Password@123" },
+
+  "storageAccounts": {
+    "value": [
+      { "skuName": "Standard_LRS", "kind": "StorageV2", "region": "ci", "suffix": "st5" }
+    ]
+  },
+
+  "vmList": {
+    "value": [
+      { "size": "Standard_B2s", "suffix": "01" }
+    ]
+  },
+
+  "nicList": {
+    "value": [
+      { "nicIndex": "01" }
+    ]
+  }
+}

@@ -29,7 +29,7 @@
 
   "storageAccounts": {
     "value": [
-      { "skuName": "Standard_LRS", "kind": "StorageV2", "region": "weu", "suffix": "st5" }
+      { "skuName": "Standard_LRS", "kind": "StorageV2", "region": "weu", "suffix": "st86" }
     ]
   },
 

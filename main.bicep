@@ -83,7 +83,7 @@ module linuxVm './modules/compute/linux-vm.bicep' = [for (vm, i) in vmList: {
   }
 }]
 
-// ===== STORAGE =====
+// ===== STORAGE Loop =====
 module storage './modules/storage/storage-account.bicep' = [for sa in storageAccounts: {
   name: 'storage-${project}-${env}-${sa.suffix}'
   scope: resourceGroup(rgName)

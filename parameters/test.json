@@ -1,7 +1,7 @@
 {
   "prefix": { "value": "intelli" },
   "project": { "value": "ddp" },
-  "env": { "value": "dev" },
+  "env": { "value": "test" },
   "region": { "value": "ind" },
   "location": { "value": "centralindia" },
 
@@ -9,16 +9,16 @@
     "value": {
       "Owner": "PlatformTeam",
       "CostCenter": "AppDev",
-      "Environment": "dev",
+      "Environment": "test",
       "project": "ddp",
       "region": "ind"
     }
   },
 
-  "vnetAddress": { "value": "10.0.0.0/16" },
+  "vnetAddress": { "value": "10.1.0.0/16" },
   "subnets": {
     "value": [
-      { "name": "snet-app-ddp-dev-ind-01", "addressPrefix": "10.0.1.0/24" }
+      { "name": "snet-app-ddp-test-ind-01", "addressPrefix": "10.1.1.0/24" }
     ]
   },
 
@@ -27,7 +27,7 @@
 
   "storageAccounts": {
     "value": [
-      { "skuName": "Standard_LRS", "kind": "StorageV2", "region": "centralindia", "suffix": "st8" }
+      { "skuName": "Standard_LRS", "kind": "StorageV2", "region": "ci", "suffix": "st5" }
     ]
   },
 
@@ -35,13 +35,11 @@
     "value": [
       { "size": "Standard_B1s", "suffix": "01" }
     ]
-    
   },
+
   "nicList": {
-  "value": [
-    { "nicIndex": "01" }
-  ]
-}
-
-
+    "value": [
+      { "nicIndex": "01" }
+    ]
+  }
 }

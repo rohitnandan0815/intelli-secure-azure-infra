@@ -36,15 +36,12 @@ jobs:
       - name: Build Bicep File
         run: |
           az bicep build --file main.bicep
-
       - name: What-If Deployment
         run: |
           az deployment sub what-if \
             --location eastus \
             --template-file main.bicep \
             --parameters @$PARAM_FILE
-
-
   securityScan:
     name: Security Scan (Checkov)
     needs: build
@@ -88,10 +85,10 @@ jobs:
 
   deploy:
     name: Deploy Infrastructure
-    needs: ${{ github.ref_name == 'main' && 'manualApproval' || fromJson('["build","securityScan"]') }}
+    needs: [ build, securityScan ]
     runs-on: ubuntu-latest
-    environment: ${{ github.ref_name }}
-
+    environment: ${{ github.ref_name == 'main' && 'approval-prod' || github.ref_name }}
+    
     permissions:
       id-token: write
       contents: read
@@ -113,8 +110,6 @@ jobs:
             --location eastus \
             --template-file main.bicep \
             --parameters @$PARAM_FILE
-
-
   rollback:
     name: Rollback Deployment
     needs: [ deploy, manualApproval ]
@@ -149,7 +144,6 @@ jobs:
             --location eastus \
             --template-file main.bicep \
             --parameters @parameters/prod.json
-
       - name: Rollback Completed
         run: "true"
 

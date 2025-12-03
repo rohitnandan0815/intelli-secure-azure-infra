@@ -18,8 +18,7 @@
   "vnetAddress": { "value": "10.0.0.0/16" },
   "subnets": {
     "value": [
-      { "name": "snet-app-ddp-dev-ind-01", "addressPrefix": "10.0.1.0/24" },
-      { "name": "snet-db-ddp-dev-ind-01", "addressPrefix": "10.0.2.0/24" }
+      { "name": "snet-app-ddp-dev-ind-01", "addressPrefix": "10.0.1.0/24" }
     ]
   },
 
@@ -28,22 +27,19 @@
 
   "storageAccounts": {
     "value": [
-      { "skuName": "Standard_LRS", "kind": "StorageV2", "region": "centralindia", "suffix": "st8" },
-      { "skuName": "Standard_GRS", "kind": "StorageV2", "region": "centralindia", "suffix": "st9" }
+      { "skuName": "Standard_LRS", "kind": "StorageV2", "region": "centralindia", "suffix": "st8" }
     ]
   },
 
   "vmList": {
     "value": [
-      { "size": "Standard_B1s", "suffix": "01" },
-      { "size": "Standard_B1ms", "suffix": "02" }
+      { "size": "Standard_B1s", "suffix": "01" }
     ]
     
   },
   "nicList": {
   "value": [
-    { "nicIndex": "01" },
-    { "nicIndex": "02" }
+    { "nicIndex": "01" }
   ]
 }
 

@@ -88,7 +88,7 @@ jobs:
 
   deploy:
     name: Deploy Infrastructure
-    needs: [ build, securityScan ]
+    needs: ${{ github.ref_name == 'main' && 'manualApproval' || fromJson('["build","securityScan"]') }}
     runs-on: ubuntu-latest
     environment: ${{ github.ref_name }}
 

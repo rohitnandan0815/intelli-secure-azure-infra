@@ -130,7 +130,7 @@ jobs:
             const runs = await github.rest.actions.listWorkflowRuns({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              workflow_id: "CI-intelli-secure-azure-infra-environments.yml", 
+              workflow_id: "blank.yaml",   // correct file name
               status: "success",
               branch: "main"
             });

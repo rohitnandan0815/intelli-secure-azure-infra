@@ -38,4 +38,10 @@ jobs:
 
       - name: What-If Deployment (Preview Changes)
         run: |
-          az deployment sub what-if --location eastus --template-file main.bicep --parameters @${{ github.workspace }}/intelli-secure-azure-infra/$PARAM_FILE
+          pwd
+          ls -R
+          az deployment sub what-if \
+          --location eastus \
+          --template-file ./main.bicep \
+          --parameters @./$PARAM_FILE
+

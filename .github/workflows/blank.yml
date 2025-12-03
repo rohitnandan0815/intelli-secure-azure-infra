@@ -112,13 +112,11 @@ jobs:
             --parameters @$PARAM_FILE
   rollback:
     name: Rollback Deployment
-    needs: [ deploy, manualApproval ]
+    needs: [ deploy ]
     runs-on: ubuntu-latest
 
     # Rollback only for production & only if deploy failed #
     if: failure() && github.ref_name == 'main'
-
-    environment: prod
 
     permissions:
       id-token: write

@@ -86,7 +86,7 @@ jobs:
     name: Deploy Infrastructure
     needs: [ build, securityScan, manualApproval ]
     runs-on: ubuntu-latest
-    environment: ${{ github.ref_name == 'main' && 'approval-prod' || github.ref_name }}
+    environment: ${{ github.ref_name }}
 
     permissions:
       id-token: write

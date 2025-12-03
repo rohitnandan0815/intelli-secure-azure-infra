@@ -3,6 +3,7 @@ name: CI-intelli-secure-azure-infra-test-env
 on:
   push:
     branches:
+      - dev
       - test
       - prod
 env:
@@ -107,7 +108,7 @@ jobs:
             --parameters @$PARAM_FILE
   rollback:
     name: "Rollback Deployment"
-    needs: deploy
+    needs: [ deploy, manualApproval ]
     runs-on: ubuntu-latest
     if: failure() && github.ref_name == 'prod'
 
@@ -139,4 +140,4 @@ jobs:
             --parameters @parameters/prod.json
 
       - name: Rollback Completed
-        run: true
+        run: "true"

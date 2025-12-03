@@ -7,6 +7,7 @@ on:
       - prod
 
 jobs:
+
   build:
     name: Deploy-Infrastructure
     runs-on: ubuntu-latest
@@ -74,13 +75,41 @@ jobs:
     needs: [ build, securityScan ]
     runs-on: ubuntu-latest
 
-    # Run only when pushing to prod branch
     if: ${{ github.ref_name == 'prod' }}
 
     environment:
-      name: approval-prod   # Protected environment → manual approval required
+      name: approval-prod   
 
     steps:
-      - name: Waiting For Manual Approval
+      - name: Waiting For Approval
         run: "true"
-        
+
+  deploy:
+    name: Deploy Infrastructure
+    needs: [ build, securityScan ]
+    runs-on: ubuntu-latest
+
+    environment: ${{ github.ref_name }}
+
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Azure Login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Deploy Infrastructure
+        run: |
+          az deployment sub create \
+            --name intelli-secure-ddp-deploy-${{ github.ref_name }} \
+            --location eastus \
+            --template-file ./main.bicep \
+            --parameters @$PARAM_FILE

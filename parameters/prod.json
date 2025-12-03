@@ -2,8 +2,8 @@
   "prefix": { "value": "intelli" },
   "project": { "value": "ddp" },
   "env": { "value": "prod" },
-  "region": { "value": "ind" },
-  "location": { "value": "centralindia" },
+  "region": { "value": "eus" },
+  "location": { "value": "eastus" },
 
   "tags": {
     "value": {
@@ -11,7 +11,7 @@
       "CostCenter": "AppDev",
       "Environment": "prod",
       "project": "ddp",
-      "region": "ind"
+      "region": "eus"
     }
   },
 
@@ -19,7 +19,7 @@
 
   "subnets": {
     "value": [
-      { "name": "snet-app-ddp-prod-ind-01", "addressPrefix": "10.1.1.0/24" }
+      { "name": "snet-app-ddp-prod-eus-01", "addressPrefix": "10.1.1.0/24" }
     ]
   },
 
@@ -28,7 +28,7 @@
 
   "storageAccounts": {
     "value": [
-      { "skuName": "Standard_LRS", "kind": "StorageV2", "region": "ci", "suffix": "st5" }
+      { "skuName": "Standard_LRS", "kind": "StorageV2", "region": "eus", "suffix": "st5" }
     ]
   },
 
@@ -44,3 +44,4 @@
     ]
   }
 }
+

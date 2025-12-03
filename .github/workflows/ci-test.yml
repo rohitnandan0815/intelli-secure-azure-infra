@@ -7,7 +7,8 @@ on:
       - prod
 
 jobs:
-  deploy:
+  build:
+    name: Deploy-Infrastructure
     runs-on: ubuntu-latest
 
     env:
@@ -34,3 +35,8 @@ jobs:
       - name: Build Bicep File
         run: |
           az bicep build --file main.bicep
+
+      - name: What-If Deployment (Preview Changes)
+        run: |
+         az deployment sub what-if --location eastus --template-file ./main.bicep --parameters @$PARAM_FILE
+

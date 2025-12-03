@@ -27,7 +27,7 @@
 
   "storageAccounts": {
     "value": [
-      { "skuName": "Standard_LRS", "kind": "StorageV2", "region": "centralindia", "suffix": "st5" }
+      { "skuName": "Standard_LRS", "kind": "StorageV2", "region": "ci", "suffix": "st5" }
     ]
   },
 

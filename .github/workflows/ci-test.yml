@@ -38,10 +38,9 @@ jobs:
 
       - name: What-If Deployment (Preview Changes)
         run: |
-          pwd
-          ls -R
+         
           az deployment sub what-if \
           --location eastus \
           --template-file ./main.bicep \
-          --parameters @./$PARAM_FILE
+          --parameters @$PARAM_FILE
 

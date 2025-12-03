@@ -44,7 +44,6 @@ jobs:
             --template-file main.bicep \
             --parameters @$PARAM_FILE
 
-
   securityScan:
     name: Security Scan (Checkov)
     needs: build
@@ -71,7 +70,6 @@ jobs:
         with:
           sarif_file: results.sarif
 
-
   manualApproval:
     name: Manual Approval (Only for PROD)
     needs: [ build, securityScan ]
@@ -85,10 +83,9 @@ jobs:
       - name: Waiting for Approval
         run: "true"
 
-
   deploy:
     name: Deploy Infrastructure
-    needs: [ build, securityScan ]
+    needs: [ build, securityScan, manualApproval ]
     runs-on: ubuntu-latest
     environment: ${{ github.ref_name == 'main' && 'approval-prod' || github.ref_name }}
 
@@ -115,12 +112,10 @@ jobs:
             --template-file main.bicep \
             --parameters @$PARAM_FILE
 
-
   rollback:
     name: Rollback Deployment
     needs: [ deploy ]
     runs-on: ubuntu-latest
-
     if: failure() && github.ref_name == 'main'
 
     permissions:
@@ -128,10 +123,24 @@ jobs:
       contents: read
 
     steps:
+      - name: Get Last Successful Commit
+        id: last_success
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const runs = await github.rest.actions.listWorkflowRuns({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: "ci.yml",
+              status: "success",
+              branch: "main"
+            });
+            core.setOutput("sha", runs.data.workflow_runs[0].head_sha);
+
       - name: Checkout Last Successful Commit
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.sha }}
+          ref: ${{ steps.last_success.outputs.sha }}
 
       - name: Azure Login (OIDC)
         uses: azure/login@v2

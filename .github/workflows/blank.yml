@@ -59,7 +59,7 @@ jobs:
       - name: Run Checkov Scan
         uses: bridgecrewio/checkov-action@v12.1347.0
         with:
-          directory: ./
+          directory: ./main.bicep
           framework: bicep
           soft_fail: false
           output_format: sarif

@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      ENV_NAME: ${{ github.ref_name }}                         # dev, test, prod
+      ENV_NAME: ${{ github.ref_name }}   # dev, test, prod
       PARAM_FILE: parameters/${{ github.ref_name }}.json
 
     environment: ${{ github.ref_name }}
@@ -53,7 +53,7 @@ jobs:
       contents: read
 
     steps:
-      - name: Checkout code
+      - name: Checkout Code
         uses: actions/checkout@v4
 
       - name: Run Checkov Security Scan
@@ -63,9 +63,8 @@ jobs:
           framework: bicep
           soft_fail: false
           output_format: sarif
-          output_file_path: reports/checkov.sarif
 
       - name: Upload SARIF report to GitHub Security Dashboard
         uses: github/codeql-action/upload-sarif@v3
         with:
-          sarif_file: reports/checkov.sarif
+          sarif_file: results.sarif

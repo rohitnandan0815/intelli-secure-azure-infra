@@ -97,16 +97,14 @@ jobs:
 
     steps:
       - name: Download latest MAIN artifact
-        uses: actions/download-artifact@v4
+        uses: dawidd6/action-download-artifact@v2
         with:
           workflow: CI-intelli-secure-azure-infra-environments
+          github_token: ${{ secrets.GITHUB_TOKEN }}
           branch: main
           name: infra-artifact
 
-      - name: Extract artifact
-        run: |
-          mkdir artifact
-          tar -xvf infra-artifact.tar.gz -C artifact
+    
 
       - name: Azure CLI Deploy (Bicep)
         uses: Azure/cli@v2

@@ -94,6 +94,11 @@ jobs:
       # dev → dev env (auto)
       # test → test env (auto)
       # prod → prod env (manual approval via GitHub UI)
+   
+    permissions:
+      id-token: write
+      contents: read
+      actions: read
 
     steps:
       - name: Download latest MAIN artifact

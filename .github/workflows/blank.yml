@@ -38,7 +38,7 @@ jobs:
 
       - name: Build Bicep → main.json
         run: |
-          az bicep build --file main.bicep --out-file main.json
+          az bicep build --file main.bicep
 
       - name: Upload infra artifact
         uses: actions/upload-artifact@v4

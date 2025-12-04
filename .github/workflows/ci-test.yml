@@ -89,7 +89,7 @@ jobs:
 
 
   deploy:
-    needs: [securityScan]
+    needs: ${{ github.ref_name == 'prod' && 'manualApproval' || 'securityScan' }}
     runs-on: ubuntu-latest
     if: github.ref_name != 'main'
 

@@ -77,8 +77,8 @@ jobs:
   manualApproval:
     name: Manual Approval (Only for PROD)
     runs-on: ubuntu-latest
-    if: ${{ env.DEPLOY_ENV == 'prod' }}
-    needs: [build, securityScan]
+    if: ${{ github.ref_name == 'prod' }}
+    needs: [securityScan]
 
     environment:
       name: approval-prod

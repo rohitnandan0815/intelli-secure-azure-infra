@@ -85,7 +85,7 @@ jobs:
 
 
   deploy:
-    needs: [securityScan]
+    needs: [build ,securityScan]
     runs-on: ubuntu-latest
     if: github.ref_name != 'main'
 
@@ -97,7 +97,7 @@ jobs:
 
     steps:
       - name: Download latest MAIN artifact
-        uses: dawidd6/action-download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
           workflow: CI-intelli-secure-azure-infra-environments
           branch: main

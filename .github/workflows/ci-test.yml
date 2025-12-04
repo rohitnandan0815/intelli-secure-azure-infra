@@ -85,7 +85,7 @@ jobs:
 
 
   deploy:
-    needs: [build ,securityScan]
+    needs: [securityScan]
     runs-on: ubuntu-latest
     if: github.ref_name != 'main'
 

@@ -3,20 +3,21 @@ name: CI-intelli-secure-azure-infra-environments
 on:
   push:
     branches:
-      - dev
-      - test
-      - main
+      - main     # Build & Scan only
+      - dev      # Auto deploy to DEV
+      - test     # Auto deploy to TEST
+      - prod     # Auto deploy to PROD (with approval)
 
 env:
   ENV_NAME: ${{ github.ref_name }}
-  PARAM_FILE: ${{ github.ref_name == 'main' && 'parameters/prod.json' || format('parameters/{0}.json', github.ref_name) }}
+  PARAM_FILE: parameters/${{ github.ref_name }}.json
 
 jobs:
 
   build:
-    name: Build & What-If
+    name: Build & What-If (MAIN)
     runs-on: ubuntu-latest
-    environment: ${{ github.ref_name }}
+    if: github.ref_name == 'main'
 
     permissions:
       id-token: write
@@ -34,19 +35,26 @@ jobs:
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
       - name: Build Bicep File
-        run: az bicep build --file main.bicep
+        run: az bicep build --file main.bicep --out-file main.json
+
+      - name: Upload infra artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: infra-artifact
+          path: main.json
 
       - name: What-If Deployment
         run: |
           az deployment sub what-if \
             --location eastus \
-            --template-file main.bicep \
-            --parameters @$PARAM_FILE
+            --template-file main.json \
+            --parameters @parameters/prod.json
 
   securityScan:
     name: Security Scan (Checkov)
     needs: build
     runs-on: ubuntu-latest
+    if: github.ref_name == 'main'
 
     permissions:
       contents: read
@@ -70,31 +78,29 @@ jobs:
           sarif_file: results.sarif
 
   manualApproval:
-    name: Manual Approval (Only for PROD)
-    needs: [ build, securityScan ]
+    name: Manual Approval for PROD
     runs-on: ubuntu-latest
-    if: ${{ github.ref_name == 'main' }}
-
+    if: github.ref_name == 'prod'
     environment:
       name: approval-prod
-
     steps:
-      - name: Waiting for Approval
-        run: "true"
+      - run: ":"   # no-op (blank step) — NO ECHO
 
   deploy:
-    name: Deploy Infrastructure
-    needs: [ build, securityScan, manualApproval ]
+    name: Deploy to ${{ github.ref_name }}
+    needs: [ build, securityScan ]
     runs-on: ubuntu-latest
-    environment: ${{ github.ref_name == 'main' && 'approval-prod' || github.ref_name }}
 
     permissions:
       id-token: write
       contents: read
 
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
+
+      - name: Download Artifact from MAIN
+        uses: actions/download-artifact@v4
+        with:
+          name: infra-artifact
 
       - name: Azure Login (OIDC)
         uses: azure/login@v2
@@ -106,46 +112,27 @@ jobs:
       - name: Deploy Infrastructure
         run: |
           az deployment sub create \
-            --name intelli-ddp-${{ github.ref_name }} \
+            --name intelli-ddp-${{ env.ENV_NAME }} \
             --location eastus \
-            --template-file main.bicep \
-            --parameters @$PARAM_FILE
+            --template-file main.json \
+            --parameters @${{ env.PARAM_FILE }}
 
   rollback:
-    name: Rollback Deployment
-    needs: [ deploy ]
+    name: Rollback Deployment (PROD ONLY)
+    needs: deploy
     runs-on: ubuntu-latest
-    if: failure() && github.ref_name == 'main'
-
-    environment: main 
+    if: failure() && github.ref_name == 'prod'
 
     permissions:
       id-token: write
       contents: read
 
     steps:
-      - name: Get Last Successful Commit
-        id: last_success
-        uses: actions/github-script@v6
+      - name: Download Last Successful Artifact
+        uses: actions/download-artifact@v4
         with:
-          script: |
-            const runs = await github.rest.actions.listWorkflowRuns({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              workflow_id: "blank.yml",
-              status: "success",
-              branch: "main"
-            });
-            if (!runs.data.workflow_runs.length) {
-              core.setFailed("No successful workflow run found for main branch!");
-            } else {
-              core.setOutput("sha", runs.data.workflow_runs[0].head_sha);
-            }
-
-      - name: Checkout Last Successful Commit
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ steps.last_success.outputs.sha }}
+          name: infra-artifact
+          path: rollback-artifact
 
       - name: Azure Login (OIDC)
         uses: azure/login@v2
@@ -154,13 +141,12 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      - name: Run Rollback Deployment
+      - name: Rollback Deployment
         run: |
           az deployment sub create \
             --name rollback-${{ github.run_id }} \
             --location eastus \
-            --template-file main.bicep \
+            --template-file rollback-artifact/main.json \
             --parameters @parameters/prod.json
 
-      - name: Rollback Completed
-        run: "true"
+

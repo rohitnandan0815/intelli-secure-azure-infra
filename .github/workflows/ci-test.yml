@@ -37,7 +37,7 @@ jobs:
 
       - name: Build main.bicep → main.json
         run: |
-          az bicep build --file main.bicep --outfile main.json
+          az bicep build --file main.bicep
 
       - name: Upload infra artifact
         uses: actions/upload-artifact@v4
@@ -102,7 +102,6 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-     
       - name: Get latest MAIN successful build run-id
         id: get_run
         uses: actions/github-script@v7
@@ -112,7 +111,7 @@ jobs:
             const runs = await github.rest.actions.listWorkflowRuns({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              workflow_id: "CI-intelli-secure-azure-infra-environments.yml",
+              workflow_id: "blank.yml",   // ← UPDATED HERE
               branch: "main",
               status: "success"
             });
@@ -124,7 +123,6 @@ jobs:
               core.setOutput("run_id", runId);
             }
 
-    
       - name: Download Build Artifact
         uses: actions/download-artifact@v6
         with:
@@ -134,7 +132,6 @@ jobs:
           repository: ${{ github.repository }}
           run-id: ${{ steps.get_run.outputs.run_id }}
 
-  
       - name: Azure Login (OIDC)
         uses: azure/login@v2
         with:
@@ -142,7 +139,6 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-  
       - name: Azure CLI Deploy (Run)
         run: |
           az deployment sub create \
@@ -160,27 +156,4 @@ jobs:
 
     permissions:
       id-token: write
-      contents: read
-
-    steps:
-      - name: Download Last Successful Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: infra-artifact
-          path: rollback-artifact
-
-      - name: Azure Login (OIDC)
-        uses: azure/login@v2
-        with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-
-      - name: Rollback Deployment
-        run: |
-          az deployment sub create \
-            --name rollback-${{ github.run_id }} \
-            --location eastus \
-            --template-file rollback-artifact/main.json \
-            --parameters @parameters/prod.json
-
+      contents: rea

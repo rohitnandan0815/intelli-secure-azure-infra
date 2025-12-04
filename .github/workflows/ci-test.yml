@@ -1,27 +1,30 @@
-name: CI-intelli-secure-azure-infra-test-env
+name: CI-intelli-secure-azure-infra-environments
 
 on:
   push:
     branches:
+      - main
       - dev
       - test
       - prod
+
 env:
-  ENV_NAME: ${{ github.ref_name }}                     # dev / test / prod
-  PARAM_FILE: parameters/${{ github.ref_name }}.json   # dynamic param file
+  ENV_NAME: ${{ github.ref_name }}
+  PARAM_FILE: parameters/${{ github.ref_name }}.json
 
 jobs:
   build:
-    name: Deploy-Infrastructure
+    name: Build Bicep & Upload Artifact (MAIN only)
     runs-on: ubuntu-latest
-    environment: ${{ github.ref_name }}
+    if: github.ref_name == 'main'
+    environment: main
 
     permissions:
       id-token: write
       contents: read
 
     steps:
-      - name: Checkout
+      - name: Checkout Code
         uses: actions/checkout@v4
 
       - name: Azure Login (OIDC)
@@ -31,30 +34,31 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      - name: Build Bicep File
+      - name: Build main.bicep → main.json
         run: |
-          az bicep build --file main.bicep
+          az bicep build --file main.bicep --outfile main.json
 
-      - name: What-If Deployment (Preview Changes)
-        run: |
-          az deployment sub what-if \
-            --location eastus \
-            --template-file ./main.bicep \
-            --parameters @$PARAM_FILE
+      - name: Upload infra artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: infra-artifact
+          path: main.json
+
+
   securityScan:
-    name: Security-Scan-Analysis
-    needs: build
+    name: Security Scan (Checkov)
     runs-on: ubuntu-latest
+    if: github.ref_name != 'main'   # dev/test/prod only
 
     permissions:
-      security-events: write
       contents: read
+      security-events: write
 
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Run Checkov Security Scan
+      - name: Run Checkov Scan
         uses: bridgecrewio/checkov-action@v12.1347.0
         with:
           directory: ./main.bicep
@@ -62,35 +66,37 @@ jobs:
           soft_fail: false
           output_format: sarif
 
-      - name: Upload SARIF report
+      - name: Upload SARIF Report
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: results.sarif
-  manualApproval:
-    name: Manual Approval Required
-    needs: [ build, securityScan ]
-    runs-on: ubuntu-latest
-    if: ${{ github.ref_name == 'prod' }}
 
+  manualApproval:
+    name: Manual Approval (PROD only)
+    runs-on: ubuntu-latest
+    if: github.ref_name == 'prod'
     environment:
-      name: approval-prod 
+      name: approval-prod
 
     steps:
-      - name: Waiting For Approval
-        run: "true"
+      - run: ":"
+
   deploy:
-    name: Deploy Infrastructure
-    needs: [ build, securityScan ]
+    name: Deploy to ${{ github.ref_name }}
+    needs: [securityScan]           # deployment only after scan
     runs-on: ubuntu-latest
-    environment: ${{ github.ref_name }}
+    if: github.ref_name != 'main'   # dev/test/prod
+    environment: main               # uses same service principal
 
     permissions:
       id-token: write
       contents: read
 
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
+      - name: Download Artifact from MAIN
+        uses: actions/download-artifact@v4
+        with:
+          name: infra-artifact
 
       - name: Azure Login (OIDC)
         uses: azure/login@v2
@@ -99,30 +105,30 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      - name: Deploy Infrastructure
+      - name: Deploy Infra to Environment
         run: |
           az deployment sub create \
-            --name intelli-secure-ddp-deploy-${{ github.ref_name }} \
+            --name intelli-ddp-${{ env.ENV_NAME }} \
             --location eastus \
-            --template-file ./main.bicep \
-            --parameters @$PARAM_FILE
+            --template-file main.json \
+            --parameters @${{ env.PARAM_FILE }}
   rollback:
-    name: "Rollback Deployment"
-    needs: [ deploy, manualApproval ]
+    name: Rollback (PROD only)
+    needs: deploy
     runs-on: ubuntu-latest
     if: failure() && github.ref_name == 'prod'
-
-    environment: prod
+    environment: main
 
     permissions:
       id-token: write
       contents: read
 
     steps:
-      - name: Checkout last successful commit
-        uses: actions/checkout@v4
+      - name: Download Last Successful Artifact
+        uses: actions/download-artifact@v4
         with:
-          ref: ${{ github.event.workflow_run.head_sha }}
+          name: infra-artifact
+          path: rollback-artifact
 
       - name: Azure Login (OIDC)
         uses: azure/login@v2
@@ -131,13 +137,10 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      - name: Run Rollback Deployment
+      - name: Rollback Deployment
         run: |
           az deployment sub create \
             --name rollback-${{ github.run_id }} \
             --location eastus \
-            --template-file ./main.bicep \
+            --template-file rollback-artifact/main.json \
             --parameters @parameters/prod.json
-
-      - name: Rollback Completed
-        run: "true"

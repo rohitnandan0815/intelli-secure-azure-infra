@@ -97,13 +97,17 @@ jobs:
       actions: read
 
     steps:
-      - name: Download latest MAIN artifact
-        uses: dawidd6/action-download-artifact@v2
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Download Build Artifact
+        uses: actions/download-artifact@v6
         with:
-          workflow: main.yml      # <-- FIXED
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: main
           name: infra-artifact
+          path: ./build
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.repository }}
+          run-id: ${{ steps.get_run.outputs.run_id }}
 
       - name: Azure Login (OIDC)
         uses: azure/login@v2
@@ -116,8 +120,8 @@ jobs:
         run: |
           az deployment sub create \
             --location eastus \
-            --template-file artifact/main.bicep \
-            --parameters @artifact/parameters/${{ github.ref_name }}.json
+            --template-file build/main.json \
+            --parameters @parameters/${{ github.ref_name }}.json
 
 
   rollback:

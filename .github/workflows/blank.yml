@@ -14,11 +14,12 @@ env:
 
 jobs:
 
+
   build:
-    name: Build & What-If (MAIN)
+    name: Build Bicep & Upload Artifact (MAIN)
     runs-on: ubuntu-latest
     if: github.ref_name == 'main'
-    environment: main      # <<< REQUIRED
+    environment: main
 
     permissions:
       id-token: write
@@ -35,8 +36,9 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      - name: Build Bicep File
-        run: az bicep build --file main.bicep
+      - name: Build Bicep → main.json
+        run: |
+          az bicep build --file main.bicep --out-file main.json
 
       - name: Upload infra artifact
         uses: actions/upload-artifact@v4
@@ -44,19 +46,12 @@ jobs:
           name: infra-artifact
           path: main.json
 
-      - name: What-If Deployment
-        run: |
-          az deployment sub what-if \
-            --location eastus \
-            --template-file main.json \
-            --parameters @parameters/prod.json
 
 
   securityScan:
     name: Security Scan (Checkov)
-    needs: build
     runs-on: ubuntu-latest
-    if: github.ref_name == 'main'
+    if: github.ref_name != 'main'
 
     permissions:
       contents: read
@@ -69,7 +64,7 @@ jobs:
       - name: Run Checkov Scan
         uses: bridgecrewio/checkov-action@v12.1347.0
         with:
-          directory: ./main.bicep
+          directory: .
           framework: bicep
           soft_fail: false
           output_format: sarif
@@ -80,28 +75,30 @@ jobs:
           sarif_file: results.sarif
 
 
+ 
   manualApproval:
-    name: Manual Approval for PROD
+    name: Manual Approval (PROD only)
     runs-on: ubuntu-latest
     if: github.ref_name == 'prod'
     environment:
       name: approval-prod
+
     steps:
-      - run: ":"   # no-op step
+      - run: ":"
 
 
   deploy:
     name: Deploy to ${{ github.ref_name }}
-    needs: [ build, securityScan ]
+    needs: [securityScan]
     runs-on: ubuntu-latest
-    environment: main     # <<< REQUIRED (main env secrets used)
+    if: github.ref_name != 'main'
+    environment: main
 
     permissions:
       id-token: write
       contents: read
 
     steps:
-
       - name: Download Artifact from MAIN
         uses: actions/download-artifact@v4
         with:
@@ -114,7 +111,7 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      - name: Deploy Infrastructure
+      - name: Deploy Infra
         run: |
           az deployment sub create \
             --name intelli-ddp-${{ env.ENV_NAME }} \
@@ -128,7 +125,7 @@ jobs:
     needs: deploy
     runs-on: ubuntu-latest
     if: failure() && github.ref_name == 'prod'
-    environment: main     # <<< REQUIRED
+    environment: main
 
     permissions:
       id-token: write

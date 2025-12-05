@@ -50,7 +50,7 @@ jobs:
     name: Security Scan (Checkov)
     runs-on: ubuntu-latest
     if: github.ref_name != 'main'
-    needs: [build]  
+    
 
     permissions:
       contents: read
@@ -77,8 +77,8 @@ jobs:
   manualApproval:
     name: Manual Approval (Only for PROD)
     runs-on: ubuntu-latest
-    if: github.ref_name == 'prod'
-    needs: [build, securityScan]
+    if: ${{ github.ref_name == 'prod' }}
+    needs: [securityScan]
 
     environment:
       name: approval-prod
@@ -89,9 +89,9 @@ jobs:
 
 
   deploy:
-    needs: [securityScan]
+    needs: [securityScan, manualApproval]
     runs-on: ubuntu-latest
-    if: github.ref_name != 'main'
+    if: github.ref_name != 'main' && needs.securityScan.result == 'success' && needs.manualApproval.result == 'success'
 
     environment:
       name: ${{ github.ref_name }}
@@ -141,12 +141,15 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      - name: Azure CLI Deploy (Run)
+      - name: Deploy using Deployment Stack
         run: |
-          az deployment sub create \
+          az stack sub create \
+            --name mystack-${{ github.ref_name }} 
             --location eastus \
             --template-file build/main.json \
-            --parameters @parameters/${{ github.ref_name }}.json
+            --parameters @parameters/${{ github.ref_name }}.json \
+            --deny-settings-mode None \
+            --action-on-unmanage detachAll
 
 
   rollback:
@@ -179,7 +182,6 @@ jobs:
             } else {
               core.setOutput("sha", runs.data.workflow_runs[0].head_sha);
             }
-
       - name: Checkout Last Successful Commit
         uses: actions/checkout@v4
         with:
@@ -192,13 +194,15 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      - name: Run Rollback Deployment
+      - name: Run Rollback Deployment (Stack)
         run: |
-          az deployment sub create \
-            --name rollback-${{ github.run_id }} \
+          az stack sub create \
+            --name rollbackstack-${{ github.run_id }} \
             --location eastus \
             --template-file main.bicep \
-            --parameters @parameters/prod.json
-
+            --parameters @parameters/prod.json \
+            --deny-settings-mode None \
+            --action-on-unmanage detachAll 
+            
       - name: Rollback Completed
         run: "true"

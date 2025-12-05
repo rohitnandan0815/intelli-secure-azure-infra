@@ -89,10 +89,9 @@ jobs:
 
 
   deploy:
-    needs: [securityScan, manualApproval]
+    needs: [securityScan]
     runs-on: ubuntu-latest
     if: github.ref_name != 'main' && needs.securityScan.result == 'success' && (github.ref_name != 'prod' || needs.manualApproval.result == 'success')
-
     environment:
       name: ${{ github.ref_name }}
 

@@ -141,14 +141,11 @@ jobs:
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
       - name: Deploy using Deployment Stack
+        
         run: |
-          az stack sub create \
-            --name mystack-${{ github.ref_name }} 
-            --location eastus \
-            --template-file build/main.json \
-            --parameters @parameters/${{ github.ref_name }}.json \
-            --deny-settings-mode None \
-            --action-on-unmanage detachAll
+          az stack sub create --name mystack-${{ github.ref_name }} --location eastus --template-file build/main.json --parameters @parameters/${{ github.ref_name }}.json --deny-settings-mode None --action-on-unmanage detachAll
+
+            
 
 
   rollback:

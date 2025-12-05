@@ -147,9 +147,9 @@ jobs:
             --location eastus \
             --template-file build/main.json \
             --parameters @parameters/${{ github.ref_name }}.json \
-            --deny-settings-mode none \
-            --action-on-unmanage detach \
-            --yes
+            --deny-settings-mode None \
+            --action-on-unmanage detachAll
+      
 
 
   rollback:
@@ -202,9 +202,9 @@ jobs:
             --location eastus \
             --template-file main.bicep \
             --parameters @parameters/prod.json \
-            --deny-settings-mode none \
-            --action-on-unmanage detach \
-            --yes
+            --deny-settings-mode None \
+            --action-on-unmanage detachAll 
+            
 
       - name: Rollback Completed
         run: "true"

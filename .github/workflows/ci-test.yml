@@ -148,6 +148,7 @@ jobs:
             --template-file build/main.json \
             --parameters @parameters/${{ github.ref_name }}.json \
             --deny-settings-mode none \
+            --action-on-unmanage detach \
             --yes
 
 
@@ -202,6 +203,7 @@ jobs:
             --template-file main.bicep \
             --parameters @parameters/prod.json \
             --deny-settings-mode none \
+            --action-on-unmanage detach \
             --yes
 
       - name: Rollback Completed
